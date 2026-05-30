@@ -1,0 +1,177 @@
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/*  Body and Typography  */
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #f2f4f7, #e0f7fa);
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  min-height: 100vh;
+}
+
+/*  Navbar  */
+.navbar {
+  width: 100%;
+  background-color: #1976d2;
+  color: white;
+  padding: 16px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  animation: slideDown 0.6s ease-in-out;
+}
+
+.navbar .logo {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.navbar .nav-right a {
+  color: white;
+  text-decoration: none;
+  margin-left: 20px;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+}
+
+.navbar .nav-right a:hover {
+  opacity: 0.7;
+}
+
+/*  Title  */
+h2 {
+  font-size: 28px;
+  color: #2b2d42;
+  margin-bottom: 30px;
+  animation: fadeIn 1s ease-in;
+}
+
+/*  Video Container  */
+#video-container {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #000;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  margin-bottom: 20px;
+  animation: fadeIn 1.5s ease;
+}
+
+#video,
+#overlay {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+/*  Status Message  */
+#status {
+  font-size: 16px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  background-color: #e3f2fd;
+  color: #1565c0;
+  text-align: center;
+  max-width: 400px;
+  animation: fadeIn 2s ease;
+}
+
+/*  Button  */
+#capture-btn {
+  padding: 12px 28px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  animation: fadeInUp 1s ease;
+}
+
+#capture-btn:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+#capture-btn:active {
+  transform: translateY(1px);
+}
+
+/*  Animations  */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/*  Responsive  */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .navbar .nav-right {
+    margin-top: 10px;
+  }
+
+  #video-container {
+    max-width: 100%;
+    height: auto;
+  }
+
+  #capture-btn, #status {
+    width: 100%;
+  }
+}

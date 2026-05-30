@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Emotion Detection</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- <h2>Face Emotion Recognition</h2>
+
+  <div id="video-container">
+    <video id="video" autoplay muted playsinline></video>
+    <canvas id="overlay" width="640" height="480"></canvas>
+  </div>
+
+  <div id="status">Camera loading...</div>
+
+  <button id="capture-btn">Analyze Emotion</button> -->
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">Emotion AI</div>
+    <div class="nav-right">
+      <a href="#">Home</a>
+      <a href="#">Docs</a>
+      <a href="#">About</a>
+    </div>
+  </nav>
+
+  <h2>Face Emotion Recognition</h2>
+
+  <!-- Video + Canvas -->
+  <div id="video-container">
+    <video id="video" autoplay muted playsinline></video>
+    <canvas id="overlay" width="640" height="480"></canvas>
+  </div>
+
+  <div id="status">Camera loading...</div>
+
+  <button id="capture-btn">Analyze Emotion</button>
+
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('overlay');
+    const ctx = canvas.getContext('2d');
+    const statusText = document.getElementById('status');
+    const captureBtn = document.getElementById('capture-btn');
+
+    // Start camera
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        statusText.textContent = "Camera ready. Click 'Analyze Emotion'";
+      } catch (err) {
+        statusText.textContent = "Error accessing camera.";
+        console.error(err);
+      }
+    }
+
+    // Capture frame and convert to Blob
+    function captureFrame() {
+      const offscreenCanvas = document.createElement('canvas');
+      offscreenCanvas.width = video.videoWidth;
+      offscreenCanvas.height = video.videoHeight;
+      const offCtx = offscreenCanvas.getContext('2d');
+      offCtx.drawImage(video, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
+      return new Promise(resolve => {
+        offscreenCanvas.toBlob(blob => {
+          resolve(blob);
+        }, 'image/jpeg');
+      });
+    }
+
+    // Draw results from backend
+    function drawPredictions(results) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      results.forEach(pred => {
+        const [x, y, w, h] = pred.box;
+        const emotion = pred.emotion;
+
+        ctx.strokeStyle = 'lime';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, w, h);
+
+        ctx.fillStyle = 'lime';
+        ctx.font = '16px Arial';
+        ctx.fillText(emotion, x, y - 10);
+      });
+    }
+
+    // Handle button click
+    captureBtn.addEventListener('click', async () => {
+      statusText.textContent = "Analyzing...";
+
+      const frameBlob = await captureFrame();
+      const formData = new FormData();
+      formData.append('file', frameBlob, 'frame.jpg');
+
+      try {
+        const res = await fetch('/predict_emotion', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (data.results) {
+          drawPredictions(data.results);
+          statusText.textContent = "Emotion(s) detected!";
+        } else {
+          statusText.textContent = "No faces found.";
+        }
+      } catch (err) {
+        console.error(err);
+        statusText.textContent = "Error during prediction.";
+      }
+    });
+
+    // Initialize
+    startCamera();
+  </script>
+</body>
+</html>
