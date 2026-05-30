@@ -17,6 +17,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def preprocess_face(face_roi: np.ndarray, target_size: tuple = (244, 244)):
+    # 1. Converting BGR (OpenCV default) to Grayscale
+    gray = cv2.cvtColor(face_roi, cv2.COLOR_BGR2GRAY)
+    
+    # 2. Duplicating the grayscale channel to mimic RGB (H, W, 3)
+    gray_3ch = cv2.merge([gray, gray, gray])
+    
+    # 3. Resizing to the model's required input size
+    resized = cv2.resize(gray_3ch, target_size, interpolation=cv2.INTER_AREA)
+    
+    # 4. Converting to float array and normalize
+    roi_array = img_to_array(resized) / 255.0
+    
+    # 5. Adding batch dimension -> (1, 244, 244, 3)
+    return np.expand_dims(roi_array, axis=0)
+
 face_detector = cv2.CascadeClassifier(r"..\..\models\haarcascade_frontalface_default.xml")
 emotion_classifier = load_model(r'..\..\models\model_phase2.h5')
 emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise']
@@ -44,20 +60,15 @@ async def websocket_endpoint(websocket: WebSocket):
             faces = face_detector.detectMultiScale(gray)
             
             results = []
-            
-            
             # roi: Region Of Interest (a.k.a Anchor)
             for (x, y, w, h) in faces:
-                roi_gray = gray[y:y+h, x:x+w]
-                roi_gray = cv2.resize(roi_gray, (48, 48), interpolation=cv2.INTER_AREA)
+                raw_face_roi = frame[y:y+h, x:x+w]
 
-                if np.sum([roi_gray]) != 0:
-                    roi = roi_gray.astype('float') / 255.0
-                    roi = img_to_array(roi)
-                    roi = np.expand_dims(roi, axis=0)
+                if raw_face_roi.size != 0:
+                    processed_roi = preprocess_face(raw_face_roi, target_size=(244, 244))
 
-                    # Note: verbose=0 speeds up inference by removing progress bars in the terminal
-                    prediction = emotion_classifier.predict(roi, verbose=0)[0]
+                    # verbose=0 speeds up inference by removing progress bars in the terminal
+                    prediction = emotion_classifier.predict(processed_roi, verbose=0)[0]
                     label = emotion_labels[prediction.argmax()]
                     
                     results.append({
