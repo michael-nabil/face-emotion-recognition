@@ -5,6 +5,7 @@ import numpy as np
 from keras.models import load_model
 from keras.preprocessing.image import img_to_array
 import base64
+import json
 
 app = FastAPI()
 
@@ -35,7 +36,9 @@ def preprocess_face(face_roi: np.ndarray, target_size: tuple = (244, 244)):
 
 face_detector = cv2.CascadeClassifier(r"..\..\models\haarcascade_frontalface_default.xml")
 emotion_classifier = load_model(r'..\..\models\model_phase2.h5')
-emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise']
+
+with open("labels.json", "r") as f:
+    emotion_labels = {int(k): v for k, v in json.load(f).items()}
 
 @app.websocket("/ws/predict_emotion")
 async def websocket_endpoint(websocket: WebSocket):
@@ -69,7 +72,8 @@ async def websocket_endpoint(websocket: WebSocket):
 
                     # verbose=0 speeds up inference by removing progress bars in the terminal
                     prediction = emotion_classifier.predict(processed_roi, verbose=0)[0]
-                    label = emotion_labels[prediction.argmax()]
+                    predicted_index = prediction.argmax()
+                    label = emotion_labels[predicted_index]
                     
                     results.append({
                         "box": [int(x), int(y), int(w), int(h)],
