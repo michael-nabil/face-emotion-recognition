@@ -2,8 +2,9 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import cv2
 import numpy as np
-from keras.models import load_model
-from keras.preprocessing.image import img_to_array
+import tensorflow as tf
+from tensorflow.keras.models import load_model
+from tensorflow.keras.utils import img_to_array
 import base64
 import json
 
@@ -35,7 +36,8 @@ def preprocess_face(face_roi: np.ndarray, target_size: tuple = (244, 244)):
     return np.expand_dims(roi_array, axis=0)
 
 face_detector = cv2.CascadeClassifier(r"..\..\models\haarcascade_frontalface_default.xml")
-emotion_classifier = load_model(r'..\..\models\model_phase2.h5')
+emotion_classifier = load_model(r'..\..\models\model_phase2_dir_saved')
+infer = emotion_classifier.signatures["serving_default"]
 
 with open("labels.json", "r") as f:
     emotion_labels = {int(k): v for k, v in json.load(f).items()}
@@ -70,9 +72,13 @@ async def websocket_endpoint(websocket: WebSocket):
                 if raw_face_roi.size != 0:
                     processed_roi = preprocess_face(raw_face_roi, target_size=(244, 244))
 
-                    # verbose=0 speeds up inference by removing progress bars in the terminal
-                    prediction = emotion_classifier.predict(processed_roi, verbose=0)[0]
+                    input_tensor = tf.convert_to_tensor(processed_roi, dtype=tf.float32)
+                    
+                    prediction_dict = infer(input_tensor)
+                    prediction_tensor = list(prediction_dict.values())[0]
+                    prediction = prediction_tensor.numpy()[0]
                     predicted_index = prediction.argmax()
+
                     label = emotion_labels[predicted_index]
                     
                     results.append({
