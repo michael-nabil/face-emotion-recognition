@@ -70,7 +70,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 raw_face_roi = frame[y:y+h, x:x+w]
 
                 if raw_face_roi.size != 0:
-                    processed_roi = preprocess_face(raw_face_roi, target_size=(244, 244))
+                    processed_roi = preprocess_face(raw_face_roi, target_size=(224, 224))
 
                     input_tensor = tf.convert_to_tensor(processed_roi, dtype=tf.float32)
                     
